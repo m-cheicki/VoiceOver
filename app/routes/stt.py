@@ -2,7 +2,7 @@ import os
 import time
 from multiprocessing import Process, Manager
 from flask import Blueprint, request, jsonify
-from app.utility.stt import IbmSTT
+from app.utility.stt import IbmSTT, AssemblyAiSST
 
 blueprint = Blueprint('stt', __name__, url_prefix='/api/stt')
 
@@ -34,11 +34,20 @@ def transcribe_with_all():
     results = manager.list([])
 
     # IBM Watson STT
-    ibm_job = Process(target=IbmSTT.process_transcription, args=(audio, results))
+    ibm_job = Process(
+        target=IbmSTT.process_transcription, 
+        args=(audio, results))
     ibm_job.start()
+
+    # Assembly.ai STT
+    assembly_job = Process(
+        target=AssemblyAiSST.process_transcription, 
+        args=(audio, results))
+    assembly_job.start()
 
     # join all processes
     ibm_job.join()
+    assembly_job.join()
 
     results = list(results)
 
@@ -66,6 +75,8 @@ def transcribe_with_provider():
     try:
         if provider == 'ibm':
             result = IbmSTT.transcribe(audio)
+        elif provider == 'assembly':
+            result = AssemblyAiSST.transcribe(audio)
         else:
             return jsonify({'error': 'Invalid provider'}), 400
 
