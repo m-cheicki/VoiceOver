@@ -9,6 +9,8 @@ app = Flask(__name__)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # register blueprints
-from app.routes import static, translate
+from app.routes import static, translate, stt
+
 app.register_blueprint(translate.blueprint)
+app.register_blueprint(stt.blueprint)
 app.register_blueprint(static.blueprint)
