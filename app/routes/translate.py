@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.utility.translator import GoogleTranslator
+from app.utility.translator import GoogleTranslator, IbmTranslator
 
 blueprint = Blueprint('translate', __name__, url_prefix='/api/translate')
 
@@ -13,6 +13,8 @@ def __handle_translate(text, lang, provider):
     try:
         if provider == 'google':
             text = GoogleTranslator.translate(text, lang)
+        elif provider == 'ibm':
+            text = IbmTranslator.translate(text, lang)
     except Exception:
         pass
 
