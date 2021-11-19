@@ -6,6 +6,10 @@ blueprint = Blueprint('static', __name__, url_prefix='')
 @blueprint.route('/', defaults={'path': ''}, methods=['GET'])
 @blueprint.route('/<path:path>', methods=['GET'])
 def serve_static_files(path):
+    """
+    Serves static files.
+    :param path: The path to the file.
+    """
     # check if path is a file
     is_file = re.search('^(.*)\.(\w+)$', path)
     if is_file:
