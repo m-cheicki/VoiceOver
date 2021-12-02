@@ -25,10 +25,10 @@ PyJWT==2.3.0
 python-dateutil==2.8.2
 python-dotenv==0.19.2
 requests==2.26.0
-rev-ai==2.13.0
+rev-ai
 rfc3986==1.5.0
 six==1.16.0
 sniffio==1.2.0
 urllib3==1.26.7
-websocket-client==0.59.0
+websocket-client
 Werkzeug==2.0.2
