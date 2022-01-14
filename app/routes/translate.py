@@ -12,13 +12,13 @@ def __handle_translate(text, lang, provider):
     """
     try:
         if provider == 'google':
-            text = GoogleTranslator.translate(text, lang)
+            translated_text = GoogleTranslator.translate(text, lang)
         elif provider == 'ibm':
-            text = IbmTranslator.translate(text, lang)
+            translated_text = IbmTranslator.translate(text, lang)
     except Exception:
-        pass
+        translated_text = ''
 
-    return text
+    return { 'translation': translated_text, 'source': text, 'lang': lang, 'provider': provider }
 
 @blueprint.route('/', methods=['GET'])
 def translate():
