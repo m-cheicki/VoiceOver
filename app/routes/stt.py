@@ -13,8 +13,10 @@ def __save_audio(audio):
     """
     file_name = 'audio_' + time.strftime('%Y%m%d%H%M%S') + '.wav'
     file_path = os.path.join('tmp/', file_name)
+
     with open(file_path, 'wb') as f:
         f.write(audio)
+    
     return file_path
 
 @blueprint.route('/all', methods=['POST'])
@@ -22,12 +24,15 @@ def transcribe_with_all():
     """
     Transcribe with every available STT engine
     """
-    audio = request.data
+    audio = request.files.get('audio')
 
     if not audio:
         return jsonify({'error': 'No audio data provided'}), 400
     else:
-        audio_path = __save_audio(audio)
+        if audio.mimetype not in ['audio/wav']:
+            return jsonify({'error': 'Invalid audio format'}), 400
+        audio_file = audio.read()
+        audio_path = __save_audio(audio_file)
     
     # Initialize manager
     manager = Manager()
@@ -36,13 +41,13 @@ def transcribe_with_all():
     # IBM Watson STT
     ibm_job = Process(
         target=IbmSTT.process_transcription, 
-        args=(audio, results))
+        args=(audio_file, results))
     ibm_job.start()
 
     # Assembly.ai STT
     assembly_job = Process(
         target=AssemblyAiSTT.process_transcription, 
-        args=(audio, results))
+        args=(audio_file, results))
     assembly_job.start()
 
     # Rev.ai STT
@@ -70,29 +75,30 @@ def transcribe_with_provider():
     :param provider: provider name
     """
     provider = request.args.get('provider')
-    audio = request.data
+    audio = request.files.get('audio')
 
     if not audio:
         return jsonify({'error': 'No audio data provided'}), 400
     else:
-        audio_path = __save_audio(audio)
+        if audio.mimetype not in ['audio/wav']:
+            return jsonify({'error': 'Invalid audio format'}), 400
+        audio_file = audio.read()
+        audio_path = __save_audio(audio_file)
     
     result = {}
 
     try:
         if provider == 'ibm':
-            result = IbmSTT.transcribe(audio)
+            result = IbmSTT.transcribe(audio_file)
         elif provider == 'assembly':
-            result = AssemblyAiSTT.transcribe(audio)
+            result = AssemblyAiSTT.transcribe(audio_file)
         elif provider == 'rev':
             result = RevAiSTT.transcribe(audio_path)
         else:
             return jsonify({'error': 'Invalid provider'}), 400
 
         os.remove(audio_path)
-
         return jsonify(result), 200
     except Exception as e:
         os.remove(audio_path)
-
         return jsonify({'error': str(e)}), 500
