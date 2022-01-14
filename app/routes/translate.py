@@ -32,7 +32,7 @@ def translate():
     provider = request.args.get('provider')
 
     if not text:
-        return ''
+        return { 'translation': '', 'source': text, 'lang': lang, 'provider': provider }
     
     if not lang:
         lang = 'en'
