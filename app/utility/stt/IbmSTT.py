@@ -18,28 +18,36 @@ def transcribe(audio):
     Transcribe audio file using IBM Watson STT
     :param audio: audio file to transcribe
     """
-    start_time = time.time()
-    response = ibm_stt.recognize(audio, content_type='audio/wav').get_result()
-    end_time = time.time()
-
-    results = response['results']
-    alternatives = [result['alternatives'][0] for result in results]
-    transcripts = [alternative['transcript'] for alternative in alternatives]
-    confidences = [alternative['confidence'] for alternative in alternatives]
-
     text = ''
+    confidence = 0
 
-    for transcript in transcripts:
-        transcript = transcript.strip()
-        transcript = transcript.capitalize()
-        text += transcript + '. '
-    
-    text = text.strip()
+    start_time = time.time()
+    try:
+        response = ibm_stt.recognize(audio, content_type='audio/wav').get_result()
+
+        results = response['results']
+        alternatives = [result['alternatives'][0] for result in results]
+        transcripts = [alternative['transcript'] for alternative in alternatives]
+        confidences = [alternative['confidence'] for alternative in alternatives]
+
+        for transcript in transcripts:
+            transcript = transcript.strip()
+            transcript = transcript.capitalize()
+            text += transcript + '. '
+
+        text = text.strip()
+
+        if confidences and len(confidences) > 0:
+            confidence = sum(confidences) / len(confidences)
+    except Exception as e:
+        print(e)
+
+    end_time = time.time()
 
     return {
         'provider': 'IBM',
         'result': text,
-        'confidence': round(sum(confidences) / len(confidences), 2),
+        'confidence': round(confidence, 2),
         'time': round(end_time - start_time, 2)
     }
 

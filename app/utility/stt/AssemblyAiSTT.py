@@ -47,23 +47,31 @@ def transcribe(audio):
         headers=headers)
     polling_status = polling_response.json()['status']
 
-    while polling_status != 'completed':
-        time.sleep(1)
+    while polling_status == 'processing':
+        time.sleep(0.3)
         polling_response = requests.get(
             transcript_url + '/' + audio_id, 
             headers=headers)
         polling_status = polling_response.json()['status']
 
     end_time = time.time()
+    text = ''
+    confidence = 0
 
-    text = polling_response.json()['text']
-    words = polling_response.json()['words']
-    confidences = list(map(lambda x: x['confidence'], words))
+    if polling_status == 'completed':
+        text = polling_response.json()['text']
+        words = polling_response.json()['words']
+        confidences = list(map(lambda x: x['confidence'], words))
+
+        if confidences and len(confidences) > 0:
+            confidence = sum(confidences) / len(confidences)
+    else:
+        print('Assembly.ai job failed with status: ' + polling_status)
 
     return {
         'provider': 'Assembly.ai',
         'result': text,
-        'confidence': round(sum(confidences) / len(confidences), 2),
+        'confidence': round(confidence, 2),
         'time': round(end_time - start_time, 2)
     }
 

@@ -20,26 +20,36 @@ def transcribe(audio_file):
     job_details = rev_ai_stt.get_job_details(job.id)
     job_status = job_details.status.name
 
-    while(job_status != 'TRANSCRIBED'):
+    while(job_status == 'IN_PROGRESS'):
+        time.sleep(0.3)
         job_details = rev_ai_stt.get_job_details(job.id)
         job_status = job_details.status.name
-        if job_status != 'TRANSCRIBED':
-            time.sleep(0.5)
 
     end_time = time.time()
 
-    result = rev_ai_stt.get_transcript_object(job.id)
+    confidence = 0
+    text = ''
 
-    elements = result.monologues[0].elements
-    only_text_el = [element for element in elements if element.type_ == 'text']
-    confidences = list(map(lambda x: x.confidence, only_text_el))
-    tokens = map(lambda x: x.value, elements)
-    text = ''.join(tokens)
+    if job_status == 'TRANSCRIBED':
+        result = rev_ai_stt.get_transcript_object(job.id)
+        monologues = result.monologues
+
+        if monologues and len(monologues) > 0:
+            elements = monologues[0].elements
+            only_text_el = [element for element in elements if element.type_ == 'text']
+            confidences = list(map(lambda x: x.confidence, only_text_el))
+            tokens = map(lambda x: x.value, elements)
+            text = ''.join(tokens)
+
+            if confidences and len(confidences) > 0:
+                confidence = sum(confidences) / len(confidences)
+    else:
+        print('Rev.ai job failed with status: ' + job_status)
 
     return {
         'provider': 'Rev.ai',
         'result': text,
-        'confidence': round(sum(confidences) / len(confidences), 2),
+        'confidence': round(confidence, 2),
         'time': round(end_time - start_time, 2)
     }
 
