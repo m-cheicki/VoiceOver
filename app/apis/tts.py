@@ -10,7 +10,7 @@ api = Namespace('tts', description='Text tp speech API')
 @api.route('/')
 @api.param('text', 'The text to synthesize.')
 @api.param('provider', 'The provider to perform of the synthesis.')
-class TTT(Resource):
+class TTS(Resource):
     def _handle_synthesis(self, text, provider):
         """
         Handles the synthesis of text.
