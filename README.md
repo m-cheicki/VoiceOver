@@ -1,5 +1,27 @@
 # Voice Over
 
+## Start in local
+
+1. Create virtual environment
+```
+python -m venv venv
+```
+
+2. Activate virtual environment
+```
+.\venv\Script\activate
+```
+
+3. Install pip requirements
+```
+pip install --no-deps -r requirements
+```
+
+4. Start the application
+```
+python run.py
+```
+
 ## Configure nginx web server
 
 1. Update linux package manager:
