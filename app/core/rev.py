@@ -41,6 +41,8 @@ class RevService():
             language=language
         )
 
+        os.remove(audio_path)
+        
         transcript_obj = None
 
         while True:
@@ -79,7 +81,6 @@ class RevService():
                 transcript_confidence = round(sum(confidences) / len(confidences), 2)
 
         self.client.delete_job(job.id)
-        os.remove(audio_path)
 
         return (transcript_text, transcript_confidence)
 
