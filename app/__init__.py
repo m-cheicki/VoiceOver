@@ -1,9 +1,13 @@
 import re
+import mimetypes
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
 from .apis import api
+
+# Load correct mimetypes for js files
+mimetypes.add_type('application/javascript', '.js')
 
 # Load environment variables
 dotenv_path = '.env'
