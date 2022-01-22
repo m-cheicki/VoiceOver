@@ -67,6 +67,21 @@ class IBMService():
 
         return model["name"]
 
+    def _get_tts_model(self, language: str ='en') -> str:
+        """
+        Get the TTS model for the language.
+        :param language: The language.
+        """
+        model = None
+
+        all_models = self.tts_service.list_voices().get_result()["voices"]
+        filtered_models = [model for model in all_models if model["language"].startswith(language)]
+
+        if len(filtered_models) > 0:
+            model = filtered_models[0]
+
+        return model["name"]
+
     def transcribe(self, audio_file: bytes, language: str ='en'):
         """
         Transcribe the audio file.
@@ -144,7 +159,7 @@ class IBMService():
         """
         return self.translate(text, language)
 
-    def synthesize(self, text: str) -> bytes:
+    def synthesize(self, text: str, language: str = 'en') -> bytes:
         """
         Synthesize the text.
         :param text: The text to synthesize.
@@ -152,9 +167,12 @@ class IBMService():
         """
         self._init_tts_service()
 
+        tts_model = self._get_tts_model(language)
+
         result = self.tts_service.synthesize(
             text,
-            accept='audio/mp3'
+            accept='audio/mp3',
+            voice=tts_model
         ).get_result()
 
         return result.content
