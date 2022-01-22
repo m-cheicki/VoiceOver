@@ -35,3 +35,7 @@ def serve_static_files(path: str):
         return app.send_static_file(path)
     else:
         return app.send_static_file('index.html')
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    return 'File Too Large', 413
