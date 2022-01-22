@@ -42,8 +42,8 @@ class TTT(Resource):
             elif provider == 'google':
                 google_service = GoogleService()
                 translated_text = google_service.translate(text)
-        except Exception:
-            pass
+        except Exception as e:
+            api.logger.error(f"Error while translating text with provider {provider} : {e}")
 
         return translated_text
 

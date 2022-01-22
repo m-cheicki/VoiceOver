@@ -75,14 +75,13 @@ class AssemblyService():
 
             if poll_status == "error":
                 failure_detail = poll_response["error"]
-                print(f"Job Failed : {failure_detail}")
-                break
+                raise Exception(failure_detail)
             elif poll_status == "completed":
                 # retrieve transcript text
                 transcript_text = poll_response["text"]
 
                 # retrieve transcript confidence
-                transcript_confidence = round(poll_response["confidence"], 2)
+                transcript_confidence = poll_response["confidence"]
                 break
 
             time.sleep(0.3)
@@ -95,8 +94,11 @@ class AssemblyService():
         :param audio_file: The audio file to transcribe.
         """
         start_time = time.time()
-        transcribed_text, confidence = self.transcribe(audio_file)
+        try:
+            transcribed_text, confidence = self.transcribe(audio_file)
+        except Exception:
+            transcribed_text, confidence = '', 0.0
         end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
+        execution_time = end_time - start_time
 
         return transcribed_text, confidence, execution_time, 'assembly'

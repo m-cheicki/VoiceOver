@@ -56,8 +56,7 @@ class RevService():
 
             elif status == "FAILED":
                 failure_detail = job_details.failure_detail
-                print(f"Rev job Failed : {failure_detail}")
-                break
+                raise Exception(failure_detail)
 
             if status == "TRANSCRIBED":
                 # obtain transcript object for the job.
@@ -78,7 +77,7 @@ class RevService():
             # retrieve transcript confidence
             confidences = [el.confidence for el in elements if el.type_ == "text"]
             if len(confidences) > 0:
-                transcript_confidence = round(sum(confidences) / len(confidences), 2)
+                transcript_confidence = sum(confidences) / len(confidences)
 
         self.client.delete_job(job.id)
 
@@ -91,8 +90,11 @@ class RevService():
         :param language: The language to transcribe in.
         """
         start_time = time.time()
-        transcribed_text, confidence = self.transcribe(audio_file, language)
+        try:
+            transcribed_text, confidence = self.transcribe(audio_file, language)
+        except Exception:
+            transcribed_text, confidence = "", 0
         end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
+        execution_time = end_time - start_time
 
         return transcribed_text, confidence, execution_time, 'rev'

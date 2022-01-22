@@ -20,20 +20,16 @@ class GoogleService():
         :param text: The text to synthesize.
         :param language: The language to synthesize to.
         """
-        try:
-            result = gTTS(text=text, lang=language)
+        result = gTTS(text=text, lang=language)
 
-            file_name = 'tts_audio_' + time.strftime('%Y%m%d%H%M%S') + '.mp3'
-            file_path = os.path.join('tmp/', file_name)
+        file_name = 'tts_audio_' + time.strftime('%Y%m%d%H%M%S') + '.mp3'
+        file_path = os.path.join('tmp/', file_name)
 
-            result.save(file_path)
+        result.save(file_path)
 
-            with open(file_path, 'rb') as audio_file:
-                data = audio_file.read()
+        with open(file_path, 'rb') as audio_file:
+            data = audio_file.read()
 
-            os.remove(file_path)
+        os.remove(file_path)
 
-            return data
-            
-        except Exception as e:
-            print(f"Google TTS job failed : {e}")
+        return data

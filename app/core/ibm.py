@@ -79,26 +79,22 @@ class IBMService():
         transcript_confidence = 0.0
         transcript_model = self._get_stt_model(language)
 
-        try:
-            response = self.stt_service.recognize(audio_file, content_type='audio/wav', model=transcript_model).get_result()
+        response = self.stt_service.recognize(audio_file, content_type='audio/wav', model=transcript_model).get_result()
 
-            results = response['results']
-            alternatives = [result['alternatives'][0] for result in results]
-            transcripts = [alternative['transcript'] for alternative in alternatives]
-            confidences = [alternative['confidence'] for alternative in alternatives]
+        results = response['results']
+        alternatives = [result['alternatives'][0] for result in results]
+        transcripts = [alternative['transcript'] for alternative in alternatives]
+        confidences = [alternative['confidence'] for alternative in alternatives]
 
-            for transcript in transcripts:
-                transcript = transcript.strip()
-                transcript = transcript.capitalize()
-                transcript_text += transcript + '. '
+        for transcript in transcripts:
+            transcript = transcript.strip()
+            transcript = transcript.capitalize()
+            transcript_text += transcript + '. '
 
-            transcript_text = transcript_text.strip()
+        transcript_text = transcript_text.strip()
 
-            if len(confidences) > 0:
-                transcript_confidence = round(sum(confidences) / len(confidences), 2)
-
-        except Exception as e:
-            print(f"IBM stt failed : {e}")
+        if len(confidences) > 0:
+            transcript_confidence = sum(confidences) / len(confidences)
 
         return (transcript_text, transcript_confidence)
 
@@ -109,9 +105,12 @@ class IBMService():
         :param language: The language of the audio file.
         """
         start_time = time.time()
-        transcribed_text, confidence = self.transcribe(audio_file, language)
+        try:
+            transcribed_text, confidence = self.transcribe(audio_file, language)
+        except Exception:
+            transcribed_text, confidence = '', 0.0
         end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
+        execution_time = end_time - start_time
 
         return transcribed_text, confidence, execution_time, 'ibm'
 
@@ -125,19 +124,15 @@ class IBMService():
 
         translated_text = ""
 
-        try:
-            result = self.ttt_service.translate(
-                text,
-                target=language
-            ).get_result()
+        result = self.ttt_service.translate(
+            text,
+            target=language
+        ).get_result()
 
-            translations = result["translations"]
+        translations = result["translations"]
 
-            if len(translations) > 0:
-                translated_text = translations[0]["translation"]
-
-        except Exception as e:
-            print(f"IBM lt failed : {e}")
+        if len(translations) > 0:
+            translated_text = translations[0]["translation"]
 
         return translated_text
 
@@ -157,16 +152,12 @@ class IBMService():
         """
         self._init_tts_service()
 
-        try:
-            result = self.tts_service.synthesize(
-                text,
-                accept='audio/mp3'
-            ).get_result()
+        result = self.tts_service.synthesize(
+            text,
+            accept='audio/mp3'
+        ).get_result()
 
-            return result.content
-
-        except Exception as e:
-            print(f"IBM tts failed : {e}")
+        return result.content
 
     async def synthesize_async(self, text: str) -> bytes:
         """

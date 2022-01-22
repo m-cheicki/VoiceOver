@@ -46,11 +46,11 @@ class STTSingle(Resource):
             elif provider == 'rev':
                 rev_service = RevService()
                 transcription, confidence = rev_service.transcribe(audio_file)
-        except Exception:
-            pass
+        except Exception as e:
+            api.logger.error(f"Error while transcribing audio file with provider {provider} : {e}")
 
         end_time = time.time()
-        execution_time = round(end_time - start_time, 2)
+        execution_time = round(end_time - start_time)
 
         return transcription, confidence, execution_time
 
@@ -105,11 +105,11 @@ class STTAll(Resource):
             rev_task = asyncio.create_task(rev_service.transcribe_async(audio_file))
 
             tasks = [ibm_task, assembly_task, rev_task]
-            tmp = await asyncio.gather(*tasks, return_exceptions=True)
+            tmp = await asyncio.gather(*tasks)
             results = [{ 'transcription': x[0], 'confidence': x[1], 'time': x[2], 'provider': x[3] } for x in tmp]
 
-        except Exception:
-            pass
+        except Exception as e:
+            api.logger.error(f"Error while transcribing audio file : {e}")
 
         return results
 

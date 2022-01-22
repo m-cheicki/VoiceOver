@@ -34,8 +34,8 @@ class TTS(Resource):
             elif provider == 'google':
                 google_service = GoogleService()
                 synthesized_audio = google_service.synthesize(text)
-        except Exception:
-            pass
+        except Exception as e:
+            api.logger.error(f"Error while synthesizing text with provider {provider} : {e}")
 
         return synthesized_audio
 
