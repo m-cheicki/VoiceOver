@@ -19,9 +19,9 @@ app = Flask(__name__, static_folder='static')
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 # Configure logging
-gunicorn_error_logger = logging.getLogger('gunicorn.error')
-app.logger.handlers.extend(gunicorn_error_logger.handlers)
-app.logger.setLevel(logging.INFO)
+gunicorn_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers.extend(gunicorn_logger.handlers)
+app.logger.setLevel(gunicorn_logger.level)
 
 # Register APIs
 api.init_app(app)
