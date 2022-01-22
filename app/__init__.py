@@ -5,8 +5,6 @@ from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-from .apis import api
-
 # Load correct mimetypes for js files
 mimetypes.add_type('application/javascript', '.js')
 
@@ -24,6 +22,7 @@ app.logger.handlers.extend(gunicorn_logger.handlers)
 app.logger.setLevel(gunicorn_logger.level)
 
 # Register APIs
+from .apis import api
 api.init_app(app)
 
 # Serve static files
