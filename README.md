@@ -14,7 +14,7 @@ python -m venv venv
 
 3. Install pip requirements
 ```
-pip install --no-deps -r requirements
+pip install --no-deps -r requirements.txt
 ```
 
 4. Start the application
