@@ -40,7 +40,7 @@ class TTS(Resource):
         return synthesized_audio
 
     @api.doc(description='Synthesize text to speech.')
-    @api.param('language', 'The provider to perform of the synthesis.', _in="formData", type=str)
+    @api.param('language', 'The language of the text.', _in="formData", type=str)
     @api.param('provider', 'The provider to perform of the synthesis.', _in="formData", required=True, type=str)
     @api.param('text', 'The text to synthesize.', _in="formData", required=True, type=str)
     @api.expect('application/form-data')
