@@ -1,6 +1,8 @@
 from flask import request, abort
 from flask_restx import Resource, Namespace, fields
 
+from ibm_watson import ApiException
+
 from app.core.ibm import IBMService
 from app.core.google import GoogleService
 
@@ -42,6 +44,13 @@ class TTT(Resource):
             elif provider == 'google':
                 google_service = GoogleService()
                 translated_text = google_service.translate(text, language)
+        except ApiException as e:
+            error_message = e.message
+            print(error_message)
+            if 'same as target' in error_message:
+                translated_text = text
+            else:
+                api.logger.error(f"Error while translating text with provider {provider} : {e}")
         except Exception as e:
             api.logger.error(f"Error while translating text with provider {provider} : {e}")
 
