@@ -1,5 +1,6 @@
 import re
 import mimetypes
+import logging
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -16,6 +17,11 @@ load_dotenv(dotenv_path)
 # Create app
 app = Flask(__name__, static_folder='static')
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# Configure logging
+gunicorn_error_logger = logging.getLogger('gunicorn.error')
+app.logger.handlers.extend(gunicorn_error_logger.handlers)
+app.logger.setLevel(logging.INFO)
 
 # Register APIs
 api.init_app(app)
