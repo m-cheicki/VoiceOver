@@ -27,7 +27,7 @@ class TTT(Resource):
 
         return True
 
-    def _handle_translation(self, text, provider):
+    def _handle_translation(self, text, provider, language):
         """
         Handles the translation of text.
         :param text: The text to be translated.
@@ -38,16 +38,17 @@ class TTT(Resource):
         try:
             if provider == 'ibm':
                 ibm_service = IBMService()
-                translated_text = ibm_service.translate(text)
+                translated_text = ibm_service.translate(text, language)
             elif provider == 'google':
                 google_service = GoogleService()
-                translated_text = google_service.translate(text)
+                translated_text = google_service.translate(text, language)
         except Exception as e:
             api.logger.error(f"Error while translating text with provider {provider} : {e}")
 
         return translated_text
 
     @api.doc(description='Translate text to english.')
+    @api.param('language', 'The language of the text.', _in="formData", type=str)
     @api.param('provider', 'The provider to perform of the translation.', _in="formData", required=True, type=str)
     @api.param('text', 'The text to translate.', _in="formData", required=True, type=str)
     @api.expect('application/form-data')
@@ -55,14 +56,18 @@ class TTT(Resource):
     def post(self):
         text = request.form.get('text')
         provider = request.form.get('provider')
+        language = request.form.get('language')
 
         if not self._check_provider_exist(provider):
             return abort(400, "Provider not supported.")
 
+        if not language or len(language) == 0:
+            language = 'en'
+
         translated_text = ""
 
         if text and len(text) > 0:
-            translated_text = self._handle_translation(text, provider)
+            translated_text = self._handle_translation(text, provider, language)
 
         return {
             'source': text,
