@@ -1,10 +1,10 @@
-from flask import request
+from flask import request, abort
 from flask_restx import Resource, Namespace, fields
 
 from app.core.ibm import IBMService
 from app.core.google import GoogleService
 
-api = Namespace('ttt', description='Text translation API')
+api = Namespace('Translation', description='Text translation API')
 
 translationResult = api.model(
     'TranslationResult', {
@@ -15,10 +15,18 @@ translationResult = api.model(
     }
 )
 
-@api.route('/')
-@api.param('text', 'The text to translate.')
-@api.param('provider', 'The provider to perform of the translation.')
+@api.route('/', endpoint='translate')
 class TTT(Resource):
+    def _check_provider_exist(self, provider):
+        """
+        Checks if the provider is valid.
+        :param provider: The provider to check.
+        """
+        if provider != 'ibm' and provider != 'google':
+            return False
+
+        return True
+
     def _handle_translation(self, text, provider):
         """
         Handles the translation of text.
@@ -40,13 +48,16 @@ class TTT(Resource):
         return translated_text
 
     @api.doc(description='Translate text to english.')
-    @api.marshal_with(translationResult)
-    def get(self):
-        text = request.args.get('text')
-        provider = request.args.get('provider')
+    @api.param('provider', 'The provider to perform of the translation.', _in="formData", required=True, type=str)
+    @api.param('text', 'The text to translate.', _in="formData", required=True, type=str)
+    @api.expect('application/form-data')
+    @api.marshal_with(translationResult, description='The translation result.')
+    def post(self):
+        text = request.form.get('text')
+        provider = request.form.get('provider')
 
-        if not provider:
-            provider = 'google'
+        if not self._check_provider_exist(provider):
+            return abort(400, "Provider not supported.")
 
         translated_text = ""
 

@@ -12,6 +12,6 @@ api = Api(
     doc='/swagger/'
 )
 
-api.add_namespace(ttt_api, path='/ttt')
-api.add_namespace(tts_api, path='/tts')
-api.add_namespace(stt_api, path='/stt')
+api.add_namespace(ttt_api, path='/translate')
+api.add_namespace(tts_api, path='/synthesize')
+api.add_namespace(stt_api, path='/recognize')

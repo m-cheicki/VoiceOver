@@ -5,12 +5,20 @@ from flask_restx import Resource, Namespace
 from app.core.ibm import IBMService
 from app.core.google import GoogleService
 
-api = Namespace('tts', description='Text tp speech API')
+api = Namespace('TTS', description='Text to speech API')
 
 @api.route('/')
-@api.param('text', 'The text to synthesize.')
-@api.param('provider', 'The provider to perform of the synthesis.')
 class TTS(Resource):
+    def _check_provider_exist(self, provider):
+        """
+        Checks if the provider is valid.
+        :param provider: The provider to check.
+        """
+        if provider != 'ibm' and provider != 'google':
+            return False
+
+        return True
+    
     def _handle_synthesis(self, text, provider):
         """
         Handles the synthesis of text.
@@ -32,20 +40,22 @@ class TTS(Resource):
         return synthesized_audio
 
     @api.doc(description='Synthesize text to speech.')
-    @api.response(200, 'Success')
-    @api.response(500, 'Text could not be synthesized.')
+    @api.param('provider', 'The provider to perform of the synthesis.', _in="formData", required=True, type=str)
+    @api.param('text', 'The text to synthesize.', _in="formData", required=True, type=str)
+    @api.expect('application/form-data')
     @api.produces(['application/octet-stream'])
-    def get(self):
-        text = request.args.get('text')
-        provider = request.args.get('provider')
+    def post(self):
+        text = request.form.get('text')
+        provider = request.form.get('provider')
 
-        if not provider:
-            provider = 'google'
+        if not text or len(text) == 0:
+            return abort(400, "Text cannot be empty.")
 
-        synthesized_audio = None
+        if not self._check_provider_exist(provider):
+            return abort(400, "Provider not supported.")
 
-        if text and len(text) > 0:
-            synthesized_audio = self._handle_synthesis(text, provider)
+        synthesized_audio = self._handle_synthesis(text, provider)
+        print(len(synthesized_audio))
 
         if synthesized_audio:
             return send_file(io.BytesIO(synthesized_audio), mimetype='audio/mp3')

@@ -8,7 +8,7 @@ from app.core.ibm import IBMService
 from app.core.assembly import AssemblyService
 from app.core.rev import RevService
 
-api = Namespace('stt', description='Speech to text API')
+api = Namespace('STT', description='Speech to text API')
 
 audio_parser = reqparse.RequestParser()
 audio_parser.add_argument('audio/wav', location='files', type=FileStorage, required=True)
@@ -22,7 +22,7 @@ transcriptionResult = api.model(
     }
 )
 
-@api.route('/')
+@api.route('/withOne')
 class STTSingle(Resource):
     def _handle_single_transcription(self, audio_file: bytes, provider: str, language: str = 'en'):
         """
@@ -85,7 +85,7 @@ class STTSingle(Resource):
             'time': exec_time
         }
 
-@api.route('/all')
+@api.route('/withAll')
 class STTAll(Resource):
     async def _handle_all_transcription(self, audio_file: bytes):
         """
