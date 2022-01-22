@@ -56,7 +56,7 @@ class RevService():
 
             elif status == "FAILED":
                 failure_detail = job_details.failure_detail
-                print(f"Job Failed : {failure_detail}")
+                print(f"Rev job Failed : {failure_detail}")
                 break
 
             if status == "TRANSCRIBED":

@@ -55,7 +55,6 @@ class TTS(Resource):
             return abort(400, "Provider not supported.")
 
         synthesized_audio = self._handle_synthesis(text, provider)
-        print(len(synthesized_audio))
 
         if synthesized_audio:
             return send_file(io.BytesIO(synthesized_audio), mimetype='audio/mp3')
