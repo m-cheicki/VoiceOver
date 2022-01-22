@@ -39,7 +39,7 @@ class STTSingle(Resource):
         try:
             if provider == 'ibm':
                 ibm_service = IBMService()
-                transcription, confidence = ibm_service.transcribe(audio_file)
+                transcription, confidence = ibm_service.transcribe(audio_file, language)
             elif provider == 'assembly':
                 assembly_service = AssemblyService()
                 transcription, confidence = assembly_service.transcribe(audio_file)
@@ -56,6 +56,7 @@ class STTSingle(Resource):
 
     @api.doc(description='Transcribe audio file.')
     @api.expect(audio_parser)
+    @api.param('language', 'The language of the audio file.')
     @api.param('provider', 'The provider to perform of the transcription.')
     @api.marshal_with(transcriptionResult)
     def post(self):
@@ -64,6 +65,7 @@ class STTSingle(Resource):
         """
         args = audio_parser.parse_args()
         provider = request.args.get('provider')
+        language = request.args.get('language')
         audio = args.get('audio/wav')
 
         if not audio:
@@ -76,7 +78,10 @@ class STTSingle(Resource):
         if not provider:
             provider = 'ibm'
 
-        transcription, confidence, exec_time = self._handle_single_transcription(audio_file, provider)
+        if not language:
+            language = 'en'
+
+        transcription, confidence, exec_time = self._handle_single_transcription(audio_file, provider, language)
 
         return {
             'transcription': transcription,
