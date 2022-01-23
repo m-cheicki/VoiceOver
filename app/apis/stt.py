@@ -1,6 +1,6 @@
 import asyncio
 import time
-import threading
+from threading import Thread
 from flask import request, abort
 from flask_restx import Resource, Namespace, fields, reqparse
 from werkzeug.datastructures import FileStorage
@@ -23,15 +23,16 @@ transcriptionResult = api.model(
     }
 )
 
-class RunThread(threading.Thread):
+class RunThread(Thread):
     def __init__(self, func, args, kwargs):
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        super().__init__()
+        Thread.__init__(self)
+        self._func = func
+        self._args = args
+        self._kwargs = kwargs
+        self.result = None
 
     def run(self):
-        self.result = asyncio.run(self.func(*self.args, **self.kwargs))
+        self.result = asyncio.run(self._func(*self._args, **self._kwargs))
 
 @api.route('/withOne')
 class STTSingle(Resource):
@@ -155,7 +156,11 @@ class STTAll(Resource):
             thread = RunThread(self._handle_all_transcription, (audio_file,), {})
             thread.start()
             thread.join()
-            results = thread.result
+            tmp = thread.result
+            if tmp:
+                results = tmp
+            else:
+                results = []
         else:
             results = asyncio.run(self._handle_all_transcription(audio_file))
 
