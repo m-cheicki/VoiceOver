@@ -188,7 +188,7 @@ class STTAll(Resource):
             loop = None
 
         if loop and loop.is_running():
-            return abort(503, "Server resource temporary unavailable")
+            return abort(503, f"Error while transcribing audio file : server resource temporary unavailable")
             #results = self._handle_all_transcription_parallel(audio_file)
         else:
             results = asyncio.run(self._handle_all_transcription_async(audio_file))
