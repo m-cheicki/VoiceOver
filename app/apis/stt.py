@@ -142,8 +142,8 @@ class STTAll(Resource):
             loop = None
 
         if loop and loop.is_running():
-            coro = self._handle_all_transcription(audio_file)
-            results = asyncio.run_coroutine_threadsafe(coro, loop).result()
+            api.logger.error("Server out of resources")
+            results = []
         else:
             results = asyncio.run(self._handle_all_transcription(audio_file))
 
