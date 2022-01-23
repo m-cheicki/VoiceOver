@@ -129,6 +129,23 @@ class IBMService():
 
         return transcribed_text, confidence, execution_time, 'ibm'
 
+    def transcribe_parallel(self, audio_file: bytes, language: str, return_list):
+        """
+        Transcribe the audio file in parallel.
+        :param audio_file: The audio file.
+        :param language: The language of the audio file.
+        :param return_list: The list to append the results to.
+        """
+        start_time = time.time()
+        try:
+            transcribed_text, confidence = self.transcribe(audio_file, language)
+        except Exception:
+            transcribed_text, confidence = '', 0.0
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        return_list.append((transcribed_text, confidence, execution_time, 'ibm'))
+
     def translate(self, text: str, language: str ='en') -> str:
         """
         Translate the text.

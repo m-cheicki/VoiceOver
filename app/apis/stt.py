@@ -1,3 +1,4 @@
+from multiprocessing import Process, Manager
 import asyncio
 import time
 from flask import request, abort
@@ -93,7 +94,7 @@ class STTSingle(Resource):
 
 @api.route('/withAll')
 class STTAll(Resource):
-    async def _handle_all_transcription(self, audio_file: bytes):
+    async def _handle_all_transcription_async(self, audio_file: bytes):
         """
         Handles the transcription of audio file.
         :param audio_file: The audio file to be transcribed.
@@ -113,6 +114,51 @@ class STTAll(Resource):
             tasks = [ibm_task, assembly_task, rev_task]
             tmp = await asyncio.gather(*tasks)
             results = [{ 'transcription': x[0], 'confidence': x[1], 'time': x[2], 'provider': x[3] } for x in tmp]
+
+        except Exception as e:
+            api.logger.error(f"Error while transcribing audio file : {e}")
+
+        return results
+
+    def _handle_all_transcription_parallel(self, audio_file: bytes):
+        """
+        Handles the transcription of audio file.
+        :param audio_file: The audio file to be transcribed.
+        """
+        results = []
+        language = 'en'
+
+        process_manager = Manager()
+        process_result = process_manager.list([])
+
+        try:
+            ibm_service = IBMService()
+            ibm_task = Process(
+                target=ibm_service.transcribe_parallel, 
+                args=(audio_file, language, process_result)
+            )
+
+            assembly_service = AssemblyService()
+            assembly_task = Process(
+                target=assembly_service.transcribe_parallel, 
+                args=(audio_file, process_result)
+            )
+
+            rev_service = RevService()
+            rev_task = Process(
+                target=rev_service.transcribe_parallel, 
+                args=(audio_file, language, process_result)
+            )
+
+            tasks = [ibm_task, assembly_task, rev_task]
+
+            for task in tasks:
+                task.start()
+
+            for task in tasks:
+                task.join()
+
+            results = list(process_result)
 
         except Exception as e:
             api.logger.error(f"Error while transcribing audio file : {e}")
@@ -142,9 +188,8 @@ class STTAll(Resource):
             loop = None
 
         if loop and loop.is_running():
-            api.logger.error("Server out of resources")
-            results = []
+            results = self._handle_all_transcription_parallel(audio_file)
         else:
-            results = asyncio.run(self._handle_all_transcription(audio_file))
+            results = asyncio.run(self._handle_all_transcription_async(audio_file))
 
         return results

@@ -98,3 +98,19 @@ class RevService():
         execution_time = end_time - start_time
 
         return transcribed_text, confidence, execution_time, 'rev'
+
+    def transcribe_parallel(self, audio_file, language, return_list):
+        """
+        Transcribe the audio file in parallel.
+        :param audio_file: The audio file to transcribe.
+        :param language: The language to transcribe in.
+        """
+        start_time = time.time()
+        try:
+            transcribed_text, confidence = self.transcribe(audio_file, language)
+        except Exception:
+            transcribed_text, confidence = "", 0
+        end_time = time.time()
+        execution_time = end_time - start_time
+
+        return_list.append((transcribed_text, confidence, execution_time, 'rev'))
