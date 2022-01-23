@@ -1,5 +1,6 @@
 import asyncio
 import time
+import threading
 from flask import request, abort
 from flask_restx import Resource, Namespace, fields, reqparse
 from werkzeug.datastructures import FileStorage
@@ -21,6 +22,16 @@ transcriptionResult = api.model(
         'time': fields.Float(description='Execution time of the transcription.')
     }
 )
+
+class RunThread(threading.Thread):
+    def __init__(self, func, args, kwargs):
+        self.func = func
+        self.args = args
+        self.kwargs = kwargs
+        super().__init__()
+
+    def run(self):
+        self.result = asyncio.run(self.func(*self.args, **self.kwargs))
 
 @api.route('/withOne')
 class STTSingle(Resource):
@@ -135,6 +146,17 @@ class STTAll(Resource):
                 return abort(400, "Invalid audio file provided.")
             audio_file = audio.read()
 
-        results = asyncio.run(self._handle_all_transcription(audio_file))
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            thread = RunThread(self._handle_all_transcription, (audio_file,), {})
+            thread.start()
+            thread.join()
+            results = thread.result
+        else:
+            results = asyncio.run(self._handle_all_transcription(audio_file))
 
         return results
