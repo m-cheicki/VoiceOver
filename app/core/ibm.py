@@ -72,6 +72,9 @@ class IBMService():
         Get the TTS model for the language.
         :param language: The language.
         """
+        if language == 'en':
+            return 'en-GB_JamesV3Voice'
+
         model = None
 
         all_models = self.tts_service.list_voices().get_result()["voices"]
